@@ -1,10 +1,10 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Wilkywayre.Govee.Driver.Model;
+namespace Wilkywayre.Govee.Driver.Model.Scan;
 
 public class GoveeScanResponse
 {
-    [JsonPropertyName("id")]
+    [JsonPropertyName("ip")]
     public string Ip { get; set; }
     [JsonPropertyName("device")]
     public string Mac { get; set; }

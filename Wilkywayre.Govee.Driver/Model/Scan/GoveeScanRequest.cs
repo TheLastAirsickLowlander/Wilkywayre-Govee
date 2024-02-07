@@ -1,11 +1,14 @@
 ﻿using System.Text.Json.Serialization;
+using Wilkywayre.Govee.Driver.Interfaces;
 
-namespace Wilkywayre.Govee.Driver.Model;
+namespace Wilkywayre.Govee.Driver.Model.Scan;
 
-public class GoveeScanRequest 
+public class GoveeScanRequest : IGoveeCommand 
 {
-    public const string Command = "scan";
+    
     
     [JsonPropertyName("account_topic")]
     public string Topic => "reserve";
+
+    public string GetCommand() => GoveeCommands.Scan;
 }
