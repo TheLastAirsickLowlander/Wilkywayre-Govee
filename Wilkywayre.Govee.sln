@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wilkywayre.Govee.Driver", "Wilkywayre.Govee.Driver\Wilkywayre.Govee.Driver.csproj", "{6E5E51CB-7774-47E3-8F68-9B908CC501C3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wilkywayre.Govee.Service", "Wilkywayre.Govee.Service\Wilkywayre.Govee.Service.csproj", "{97BB100D-DF78-4534-AD94-6FA2B1600325}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6E5E51CB-7774-47E3-8F68-9B908CC501C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E5E51CB-7774-47E3-8F68-9B908CC501C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E5E51CB-7774-47E3-8F68-9B908CC501C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E5E51CB-7774-47E3-8F68-9B908CC501C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97BB100D-DF78-4534-AD94-6FA2B1600325}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97BB100D-DF78-4534-AD94-6FA2B1600325}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97BB100D-DF78-4534-AD94-6FA2B1600325}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97BB100D-DF78-4534-AD94-6FA2B1600325}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
