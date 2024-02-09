@@ -49,10 +49,6 @@ public class GoveeService : IGoveeService
             await Task.Delay(2000);   
         }
     }
-    
-    
-    
-    
     private async Task ListForDevices(CancellationToken token = default)
     {
         GoveeScanResponse? message = null;
@@ -116,23 +112,24 @@ public class GoveeService : IGoveeService
         }
     }
 
-    private void SendPowerOnRequest(GoveeScanResponse response, int onOff)
+    private async Task SendPowerOnRequest(GoveeDevice device, int onOff)
     {
         using var udpClient = new UdpClient(4003);
-        var endPoint = new IPEndPoint(IPAddress.Parse(response.Ip), 4003);
+        var endPoint = new IPEndPoint(IPAddress.Parse(device.IPAddress), 4003);
         // turns it on
+        _logger.LogDebug("Sending power on request to {DeviceIpAddress} with {OnOff}", device.IPAddress, onOff);
         var message = new GoveeWrapper<GoveePowerRequest>(new() { OnOff = onOff });
         var requestScanMessage = Encoding.Default.GetBytes(JsonSerializer.Serialize(message));
-        udpClient.Send(requestScanMessage, requestScanMessage.Length, endPoint);
+        await udpClient.SendAsync(requestScanMessage, requestScanMessage.Length, endPoint);
     }
 
-    private void SendRequestStatus(GoveeScanResponse response)
+    private void SendRequestStatus(GoveeDevice device)
     {
         using var udpClient = new UdpClient(4003);
-        var endPoint = new IPEndPoint(IPAddress.Parse(response.Ip), 4003);
+        var endPoint = new IPEndPoint(IPAddress.Parse(device.IPAddress), 4003);
 
         var message = new GoveeWrapper<GoveeStatusRequest>(new());
-
+        _logger.LogDebug("Sending status request to {DeviceIpAddress}", device.IPAddress);
         var requestScanMessage = Encoding.Default.GetBytes(JsonSerializer.Serialize(message));
         udpClient.Send(requestScanMessage, requestScanMessage.Length, endPoint);
     }
@@ -143,14 +140,16 @@ public class GoveeService : IGoveeService
         return Task.FromResult(Devices);
     }
 
-    public Task<bool> TurnOnDevice(GoveeDevice device)
+    public async Task<bool> TurnOnDevice(GoveeDevice device)
     {
-        throw new NotImplementedException();
+        await SendPowerOnRequest(device, 1);
+        return true;
     }
 
-    public Task<bool> TurnOffDevice(GoveeDevice device)
+    public async Task<bool> TurnOffDevice(GoveeDevice device)
     {
-        throw new NotImplementedException();
+        await SendPowerOnRequest(device, 0);
+        return true;
     }
 
     public Task<bool> SetColor(GoveeDevice device, GoveeColor color)
