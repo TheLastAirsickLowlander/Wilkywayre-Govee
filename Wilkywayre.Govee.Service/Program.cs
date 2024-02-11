@@ -16,7 +16,7 @@ using var host = Host.CreateDefaultBuilder(args)
         configHost.SetBasePath(Directory.GetCurrentDirectory());
         configHost.AddJsonFile("appsettings.json", optional: true);
     })
-    .ConfigureServices((hostContext, services) =>
+    .ConfigureServices((_, services) =>
     {
         services.AddSingleton<IGoveeService, GoveeService>();
     })
@@ -27,6 +27,7 @@ using var host = Host.CreateDefaultBuilder(args)
 
 var service = host.Services.GetService<IGoveeService>();
 var logger = host.Services.GetService <ILogger<Program>>();
+
 if (logger is null || service is null)
 {
     return;
@@ -37,58 +38,85 @@ logger.LogDebug($"Getting devices");
 var devices = await service.GetDevicesAsync();
 foreach (var device in devices)
 {
-    logger.LogInformation($"Device: {device.MacAddress}, Turning on");
+    logger.LogInformation("Device: {DeviceMacAddress}, Turning on", device.MacAddress);
     await service.TurnOnDevice(device);
 }
 
-
-
-
-Microsoft.Win32.SystemEvents.SessionSwitch += (sender, e) =>
+SystemEvents.SessionSwitch += (_, e) =>
 {
-    if (e.Reason == Microsoft.Win32.SessionSwitchReason.SessionLock)
+    switch (e.Reason)
     {
-        logger.LogInformation("Session locked");
-        foreach(var device in devices)
+        case SessionSwitchReason.SessionLock:
         {
-            service.TurnOffDevice(device);
+            logger.LogInformation("Session locked");
+            foreach(var device in devices)
+            {
+                service.TurnOffDevice(device);
+            }
+
+            break;
         }
-    }
-    else if (e.Reason == Microsoft.Win32.SessionSwitchReason.SessionUnlock)
-    {
-        foreach(var device in devices)
+        case SessionSwitchReason.SessionUnlock:
         {
-            service.TurnOnDevice(device);
+            foreach(var device in devices)
+            {
+                service.TurnOnDevice(device);
+            }
+
+            break;
         }
+        case SessionSwitchReason.ConsoleConnect:
+            break;
+        case SessionSwitchReason.ConsoleDisconnect:
+            break;
+        case SessionSwitchReason.RemoteConnect:
+            break;
+        case SessionSwitchReason.RemoteDisconnect:
+            break;
+        case SessionSwitchReason.SessionLogon:
+            break;
+        case SessionSwitchReason.SessionLogoff:
+            break;
+        case SessionSwitchReason.SessionRemoteControl:
+            break;
     }
 };
+
 // power off the device detection
-SystemEvents.PowerModeChanged += (sender, e) =>
+SystemEvents.PowerModeChanged += (_, e) =>
 {
-    if (e.Mode == PowerModes.Suspend)
+    switch (e.Mode)
     {
-        foreach(var device in devices)
+        case PowerModes.Suspend:
         {
-            service.TurnOffDevice(device);
+            foreach(var device in devices)
+            {
+                service.TurnOffDevice(device);
+            }
+            logger.LogInformation("Power suspend");
+            break;
         }
-        logger.LogInformation("Power suspend");
-    }
-    else if (e.Mode == PowerModes.Resume)
-    {
-        foreach(var device in devices)
+        case PowerModes.Resume:
         {
-            service.TurnOnDevice(device);
+            foreach(var device in devices)
+            {
+                service.TurnOnDevice(device);
+            }
+            logger.LogInformation("Power resume");
+            break;
         }
-        logger.LogInformation("Power resume");
+        case PowerModes.StatusChange:
+            break;
     }
 };
 
-SystemEvents.SessionEnding += (sender, e) =>
+SystemEvents.SessionEnding += (_, _) =>
 {
     foreach(var device in devices)
     {
         service.TurnOffDevice(device);
     }
-    logger.LogInformation("Session ending: This is a logoff, shutdown, or reboot.");
+    logger.LogInformation("Session ending: This is a logoff, shutdown, or reboot");
 };
+
 await host.RunAsync();
