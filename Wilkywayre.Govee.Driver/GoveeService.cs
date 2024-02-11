@@ -43,10 +43,10 @@ public class GoveeService : IGoveeService
     private async Task GetGoveeDevices()
     {
         var receiveTask = ListForDevices(_tokenSource.Token);
-        foreach (var i in Enumerable.Range(0, 3))
+        foreach (var i in Enumerable.Range(0, 2))
         {
             SendRequestScan();
-            await Task.Delay(2000);   
+            await Task.Delay(1000);   
         }
     }
     private async Task ListForDevices(CancellationToken token = default)
@@ -75,7 +75,7 @@ public class GoveeService : IGoveeService
                         {
                             continue;
                         }                        
-                        
+                        _logger.LogDebug("Received message from {IpAddress} with {Mac}", message.Ip, message.Mac);
                         if (Devices.All(d => d.MacAddress != message.Mac))
                         {
                             var gd = new GoveeDevice
@@ -109,6 +109,7 @@ public class GoveeService : IGoveeService
 
             var requestScanMessage = Encoding.Default.GetBytes(JsonSerializer.Serialize(message));
             udpClient.Send(requestScanMessage, requestScanMessage.Length, endPoint);
+            _logger.LogDebug("Sending scan request");
         }
     }
 
