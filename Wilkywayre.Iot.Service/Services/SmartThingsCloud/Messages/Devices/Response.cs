@@ -5,5 +5,5 @@ namespace Wilkywayre.Iot.Service.Services.SmartThingsCloud.Messages.Devices;
 public class Response
 {
     [JsonPropertyName("items")]
-    List<Device> Items { get; set; }
+    Device[] Items { get; set; }
 }

@@ -9,6 +9,7 @@ using Serilog;
 using Wilkywayre.Govee.Driver;
 using Wilkywayre.Govee.Driver.Interfaces;
 using Wilkywayre.Iot.Service.Services.SmartThingsCloud;
+using Wilkywayre.Iot.Service.Services.SmartThingsCloud.Messages.Devices;
 
 
 using var host = Host.CreateDefaultBuilder(args)
@@ -44,7 +45,7 @@ if (logger is null || goveeService is null || smartService is null)
 }
 
 logger.LogDebug($"Getting devices");
-var SmartDevices = await smartService.GetDevicesAsync();
+// var SmartDevices = await smartService.GetDevicesAsync();
 var devices = await goveeService.GetDevicesAsync();
 foreach (var device in devices)
 {
@@ -64,6 +65,8 @@ SystemEvents.SessionSwitch += (_, e) =>
                 goveeService.TurnOffDevice(device);
             }
 
+            smartService.TurnOffDevice(new Device() { DeviceId = "13fd050e-e486-4395-a890-0d5163e9b890" });
+            
             break;
         }
         case SessionSwitchReason.SessionUnlock:
@@ -72,6 +75,7 @@ SystemEvents.SessionSwitch += (_, e) =>
             {
                 goveeService.TurnOnDevice(device);
             }
+            smartService.TurnOnDevice(new Device() { DeviceId = "13fd050e-e486-4395-a890-0d5163e9b890" });
 
             break;
         }
@@ -103,6 +107,8 @@ SystemEvents.PowerModeChanged += (_, e) =>
             {
                 goveeService.TurnOffDevice(device);
             }
+            smartService.TurnOffDevice(new Device() { DeviceId = "13fd050e-e486-4395-a890-0d5163e9b890" });
+
             logger.LogInformation("Power suspend");
             break;
         }
@@ -112,6 +118,8 @@ SystemEvents.PowerModeChanged += (_, e) =>
             {
                 goveeService.TurnOnDevice(device);
             }
+            smartService.TurnOnDevice(new Device() { DeviceId = "13fd050e-e486-4395-a890-0d5163e9b890" });
+
             logger.LogInformation("Power resume");
             break;
         }

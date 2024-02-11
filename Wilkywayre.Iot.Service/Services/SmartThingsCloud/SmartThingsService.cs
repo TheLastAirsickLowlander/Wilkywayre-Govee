@@ -22,10 +22,40 @@ public class SmartThingsService : ISmartThingsService
         var client = _clientFactory.CreateClient(nameof(SmartThingsService));
         var data = await client.GetAsync("/v1/devices");
         var content = await data.Content.ReadAsStringAsync();
-        var responseObject =  JsonSerializer.Deserialize<Messages.Devices.Response>(content);
+        var responseObject =  JsonSerializer.Deserialize<JsonElement>(content, new JsonSerializerOptions()
+        {
+            PropertyNameCaseInsensitive  = true
+        });
         
         _logger.LogInformation("SmartThingsService.GetDevicesAsync: {responseObject}", responseObject);
         return [];
+    }
+    public async ValueTask<bool> TurnOnDevice(Messages.Devices.Device device)
+    {
+        var client = _clientFactory.CreateClient(nameof(SmartThingsService));
+        var data = await client.PostAsync($"/v1/devices/{device.DeviceId}/commands", new StringContent("{\"commands\":[{\"component\":\"main\",\"capability\":\"switch\",\"command\":\"on\"}]}"));
+        var content = await data.Content.ReadAsStringAsync();
+        var responseObject =  JsonSerializer.Deserialize<JsonElement>(content, new JsonSerializerOptions()
+        {
+            PropertyNameCaseInsensitive  = true
+        });
+        
+        _logger.LogInformation("SmartThingsService.TurnOnDevice: {responseObject}", responseObject);
+        return true;
+    }
+
+    public async ValueTask<bool> TurnOffDevice(Messages.Devices.Device device)
+    {
+        var client = _clientFactory.CreateClient(nameof(SmartThingsService));
+        var data = await client.PostAsync($"/v1/devices/{device.DeviceId}/commands", new StringContent("{\"commands\":[{\"component\":\"main\",\"capability\":\"switch\",\"command\":\"off\"}]}"));
+        var content = await data.Content.ReadAsStringAsync();
+        var responseObject =  JsonSerializer.Deserialize<JsonElement>(content, new JsonSerializerOptions()
+        {
+            PropertyNameCaseInsensitive  = true
+        });
+        
+        _logger.LogInformation("SmartThingsService.TurnOnDevice: {responseObject}", responseObject);
+        return true;
     }
 }
 
