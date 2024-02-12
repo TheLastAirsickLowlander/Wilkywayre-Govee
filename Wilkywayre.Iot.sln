@@ -4,8 +4,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wilkywayre.Govee.Driver", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wilkywayre.Iot.Service", "Wilkywayre.Iot.Service\Wilkywayre.Iot.Service.csproj", "{97BB100D-DF78-4534-AD94-6FA2B1600325}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6DE27E5B-557F-4EA8-9728-769CC0A136EC}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Protocols", "Protocols", "{64E1BB2F-5C1C-493A-98F2-C890A82E158E}"
 EndProject
 Global

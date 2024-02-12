@@ -8,6 +8,8 @@ using Microsoft.Win32;
 using Serilog;
 using Wilkywayre.Govee.Driver;
 using Wilkywayre.Govee.Driver.Interfaces;
+using Wilkywayre.Iot.Service.Services;
+using Wilkywayre.Iot.Service.Services.GoveeLan;
 using Wilkywayre.Iot.Service.Services.SmartThingsCloud;
 using Wilkywayre.Iot.Service.Services.SmartThingsCloud.Messages.Devices;
 
@@ -20,7 +22,7 @@ using var host = Host.CreateDefaultBuilder(args)
     })
     .ConfigureServices((_, services) =>
     {
-        services.AddSingleton<IGoveeService, GoveeService>();
+        services.AddGoveeService();
         services.AddSmartThingsService();
     })
     .UseSerilog((context, configuration) => configuration
@@ -33,24 +35,21 @@ if (logger is null)
 {
     return;
 }
-logger.LogDebug($"Getting Govee Service");
-var goveeService = host.Services.GetService<IGoveeService>();
-logger.LogDebug("getting SmartThingsService");
-var smartService =  host.Services.GetService<ISmartThingsService>();
 
+logger.LogDebug($"Getting IController Services");
+var services = host.Services.GetServices<IControllerService>();
 
-if (logger is null || goveeService is null || smartService is null)
+var controllerServices = services as IControllerService[] ?? services.ToArray();
+if(!controllerServices.Any())
 {
+    logger.LogError("No controllers found");
     return;
 }
 
-logger.LogDebug($"Getting devices");
-// var SmartDevices = await smartService.GetDevicesAsync();
-var devices = await goveeService.GetDevicesAsync();
-foreach (var device in devices)
-{
-    logger.LogInformation("Device: {DeviceMacAddress}, Turning on", device.MacAddress);
-    await goveeService.TurnOnDevice(device);
+foreach (var service in controllerServices)    
+{    
+    logger.LogInformation("Initializing {ServiceName}", service.GetType().Name);
+    await service.InitializeAsync();
 }
 
 SystemEvents.SessionSwitch += (_, e) =>
@@ -60,22 +59,20 @@ SystemEvents.SessionSwitch += (_, e) =>
         case SessionSwitchReason.SessionLock:
         {
             logger.LogInformation("Session locked");
-            foreach(var device in devices)
+            foreach (var service in controllerServices)
             {
-                goveeService.TurnOffDevice(device);
+                service.TurnOffDevicesAsync();
             }
-
-            smartService.TurnOffDevice(new Device() { DeviceId = "13fd050e-e486-4395-a890-0d5163e9b890" });
             
             break;
         }
         case SessionSwitchReason.SessionUnlock:
         {
-            foreach(var device in devices)
+            logger.LogInformation("Session unlocked");
+            foreach (var service in controllerServices)
             {
-                goveeService.TurnOnDevice(device);
+                service.TurnOnDevicesAsync();
             }
-            smartService.TurnOnDevice(new Device() { DeviceId = "13fd050e-e486-4395-a890-0d5163e9b890" });
 
             break;
         }
@@ -103,24 +100,22 @@ SystemEvents.PowerModeChanged += (_, e) =>
     {
         case PowerModes.Suspend:
         {
-            foreach(var device in devices)
-            {
-                goveeService.TurnOffDevice(device);
-            }
-            smartService.TurnOffDevice(new Device() { DeviceId = "13fd050e-e486-4395-a890-0d5163e9b890" });
-
             logger.LogInformation("Power suspend");
+            foreach (var service in controllerServices)
+            {
+                service.TurnOffDevicesAsync();
+            }
+
             break;
         }
         case PowerModes.Resume:
         {
-            foreach(var device in devices)
-            {
-                goveeService.TurnOnDevice(device);
-            }
-            smartService.TurnOnDevice(new Device() { DeviceId = "13fd050e-e486-4395-a890-0d5163e9b890" });
-
             logger.LogInformation("Power resume");
+            foreach (var service in controllerServices)
+            {
+                service.TurnOnDevicesAsync();
+            }
+
             break;
         }
         case PowerModes.StatusChange:
@@ -130,11 +125,11 @@ SystemEvents.PowerModeChanged += (_, e) =>
 
 SystemEvents.SessionEnding += (_, _) =>
 {
-    foreach(var device in devices)
-    {
-        goveeService.TurnOffDevice(device);
-    }
     logger.LogInformation("Session ending: This is a logoff, shutdown, or reboot");
+    foreach (var service in controllerServices)
+    {
+        service.TurnOffDevicesAsync();
+    }
 };
 
 await host.RunAsync();

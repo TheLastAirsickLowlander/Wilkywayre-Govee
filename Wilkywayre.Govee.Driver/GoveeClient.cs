@@ -19,38 +19,36 @@ namespace Wilkywayre.Govee.Driver;
  * https://app-h5.govee.com/user-manual/wlan-guide
  */
 
-public class GoveeService : IGoveeService
+public class GoveeClient : IGoveeClient
 {
-    private readonly ILogger<GoveeService> _logger;
+    private readonly ILogger<GoveeClient> _logger;
     private readonly CancellationTokenSource _tokenSource;
-    private List<GoveeDevice> Devices { get; set; } = new();
 
-    public GoveeService(ILogger<GoveeService> logger)
+    public GoveeClient(ILogger<GoveeClient> logger)
     {
         _logger = logger;
         _tokenSource = new CancellationTokenSource();
-        var init = Initialize();
-        init.Wait();
-
     }
-
-
-    private async Task Initialize()
-    {
-        await GetGoveeDevices();
-    }
-
-    private async Task GetGoveeDevices()
+    
+    public  async Task<IEnumerable<GoveeDevice>> GetGoveeDevicesAsync(int requestAttempts = 2)
     {
         var receiveTask = ListForDevices(_tokenSource.Token);
-        foreach (var i in Enumerable.Range(0, 2))
+        _tokenSource.Token.Register(() => _logger.LogDebug("Token has been cancelled"));
+        foreach (var i in Enumerable.Range(0, requestAttempts))
         {
             SendRequestScan();
-            await Task.Delay(1000);   
+            await Task.Delay(500);   
         }
+        _logger.LogDebug("Cancelling the task");
+        await _tokenSource.CancelAsync();
+        _logger.LogDebug("Waiting for devices");
+        var data = await receiveTask;
+        return data;
     }
-    private async Task ListForDevices(CancellationToken token = default)
+    private async Task<IEnumerable<GoveeDevice>> ListForDevices(CancellationToken token = default)
     {
+        List<GoveeDevice> devices = new();
+
         GoveeScanResponse? message = null;
         try
         {
@@ -60,6 +58,7 @@ public class GoveeService : IGoveeService
                 udpClient.Client.Bind(ipEndPoint);
                 do
                 {
+                    
                     var data = await udpClient.ReceiveAsync(token);
                     try
                     {
@@ -76,14 +75,14 @@ public class GoveeService : IGoveeService
                             continue;
                         }                        
                         _logger.LogDebug("Received message from {IpAddress} with {Mac}", message.Ip, message.Mac);
-                        if (Devices.All(d => d.MacAddress != message.Mac))
+                        if (devices.All(d => d.MacAddress != message.Mac))
                         {
                             var gd = new GoveeDevice
                             {
                                 IPAddress = message.Ip,
                                 MacAddress = message.Mac,
                             };
-                            Devices.Add(gd);    
+                            devices.Add(gd);    
                         }
                     }
                     catch (JsonException err)
@@ -97,6 +96,7 @@ public class GoveeService : IGoveeService
         {
             _logger.LogError(err, "Unexpected Error happened" );
         }
+        return devices;
     }
 
     private void SendRequestScan()
@@ -136,24 +136,19 @@ public class GoveeService : IGoveeService
     }
 
 
-    public Task<List<GoveeDevice>> GetDevicesAsync()
-    {
-        return Task.FromResult(Devices);
-    }
-
-    public async Task<bool> TurnOnDevice(GoveeDevice device)
+    public async Task<bool> TurnOnDeviceAsync(GoveeDevice device)
     {
         await SendPowerOnRequest(device, 1);
         return true;
     }
 
-    public async Task<bool> TurnOffDevice(GoveeDevice device)
+    public async Task<bool> TurnOffDeviceAsync(GoveeDevice device)
     {
         await SendPowerOnRequest(device, 0);
         return true;
     }
 
-    public Task<bool> SetColor(GoveeDevice device, GoveeColor color)
+    public Task<bool> SetColorAsync(GoveeDevice device, GoveeColor color)
     {
         throw new NotImplementedException();
     }
