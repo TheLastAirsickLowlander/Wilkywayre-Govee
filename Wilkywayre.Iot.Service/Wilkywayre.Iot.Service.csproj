@@ -23,6 +23,7 @@
       <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
       <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.0" />
       <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
       <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
       <PackageReference Include="Microsoft.Win32.SystemEvents" Version="8.0.0" />
@@ -33,7 +34,6 @@
       <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="9.0.3" />
       <PackageReference Include="System.Text.Encodings.Web" Version="8.0.0" />
       <PackageReference Include="System.Text.Json" Version="8.0.1" />
-      <PackageReference Include="ZigBeeNet.Hardware.TI.CC2531" Version="1.5.0" />
     </ItemGroup>
 
     <ItemGroup>
